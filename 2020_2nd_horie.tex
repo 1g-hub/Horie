@@ -1,0 +1,511 @@
+%\documentstyle[epsf,twocolumn]{jarticle}       %LaTeX2e仕様
+%\documentclass[twocolumn]{jarticle}     %pLaTeX2e仕様(platex.exeの場合)
+\documentclass[twocolumn]{jarticle}     %pLaTeX2e仕様(uplatex.exeの場合)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  基本バージョン
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setlength{\topmargin}{-45pt}
+%\setlength{\oddsidemargin}{0cm} 
+\setlength{\oddsidemargin}{-7.5mm}
+%\setlength{\evensidemargin}{0cm} 
+\setlength{\textheight}{24.5cm}
+%setlength{\textheight}{25cm} 
+\setlength{\textwidth}{18cm}
+%\setlength{\textwidth}{172mm} 
+\setlength{\columnsep}{11mm}
+%\usepackage[dvipdfmx]{graphicx}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{url}
+\newcommand{\1}{\mbox{1}\hspace{-0.25em}\mbox{l}}
+\makeatletter
+\newcommand{\figcaption}[1]{\def\@captype{figure}\caption{#1}}
+\newcommand{\tblcaption}[1]{\def\@captype{table}\caption{#1}}
+\makeatother
+
+%\kanjiskip=.07zw plus.5pt minus.5pt
+
+
+% 【節が変わるごとに (1.1)(1.2) … (2.1)(2.2) と数式番号をつけるとき】
+%\makeatletter
+%\renewcommand{\theequation}{%
+%\thesection.\arabic{equation}} %\@addtoreset{equation}{section}
+%\makeatother
+
+%\renewcommand{\arraystretch}{0.95} 行間の設定
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage{graphicx}   %pLaTeX2e仕様(\documentstyle ->\documentclass)
+\usepackage[dvipdfmx]{graphicx}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+	
+	%bibtex用の設定
+	%\bibliographystyle{ujarticle} 
+	
+	\twocolumn[
+	\noindent
+	\hspace{1em}
+	令和 2 年 11 月 9 日(月) 後期研究発表会発表資料
+	\hfill
+	\ \ M1 堀江紗世
+	\vspace{2mm}
+	\hrule
+	\begin{center}
+		{\Large \bf 深層学習によるだまし絵認識手法の提案および解析}
+	\end{center}
+	\hrule
+	\vspace{3mm}
+	]
+
+% ここから 文章 Start!
+
+\section{はじめに}
+近年，深層学習の登場により，画像認識の分野は急速な発展を遂げている．
+単純な物体認識では既に人を凌駕する成果も報告されており，今後も計算機による画像識別能力は向上していくと考えられている. 一方, 人間の感性や認知に関わる分野では深層学習を用いても十分な学習ができないという課題が報告されている. これは, 人間の感性や認知といった明確な正解が存在しない抽象的な概念を定量的に評価すること現在の人工知能の枠組みでは難しいためである. 
+このため，従来の深層学習研究では, 画像分類や物体検出など, 答えが一意に定まる問題が主として扱われており, 計算機によるだまし絵の認識のような唯一解を定義しにくい問題については十分な研究がなされてこなかった．そこで，今回はだまし絵のように複数の意味解釈が可能な画像を対象とする．
+また，だまし絵ではないが, 意図せずそのような性質を持つ場合も考えられるため，以後本論文では複数の意味解釈が可能な画像を多義図形と定義する．\par
+以上，本研究では, 人の視覚認知の多義性を計算機に理解させることを目的とし, 一般物体認識において高い性能を示している深層学習手法を用いて，計算機による多義図形の識別に必要な実験の枠組みおよび計算機による識別手法を提案する．また，実際のだまし絵を用いた数値実験によって提案手法の有効性を示す．
+\par
+%一方で，写真のような実在する物体の画像とは異なる，絵画のように人が創作した画像についてはまだ計算機の認識能力が人と同等であるとはいえない．特に，人の感性や認知が関係する場合には，計算機がどのような判断根拠をもって認識したかという定義自体から考察する必要があり，未だ難しい問題である．\par
+% 従来の画像認識の研究では，画像内に存在するオブジェクトが一義的である場合がほとんどであり，同一の画像領域に対して複数の解釈が可能な多義図形を対象とした研究例はほとんど報告されていない．
+%	本研究では，多義図形の識別に必要な実験として以下の三項目に着眼し，数値実験によって提案手法の有効性を示す．
+%\begin{itemize}
+% \item 多義図形と一義図形の識別
+% \item 多義図形に描かれたオブジェクトの二通りの認識
+% \item 計算機による多義図形の注視点に関する解析
+%\end{itemize}
+
+%以下に本論文の構成を示す．
+%第 \ref{sec:pstudy} 章では従来研究として，認知科学分野における多義図形の研究および本研究で用いる深層学習の要素技術について示す．第 \ref{sec:proposed} 章で提案手法について述べ，第 \ref{sec:exp} 章で数値実験の結果および考察について示す. 第 \ref{sec:conclusion} 章は本研究のまとめである．
+
+\section{従来研究}
+\label{sec:pstudy}
+\subsection{多義図形 \label{tagizukei}}
+だまし絵の一種に，多義図形と呼ばれるものがある．多義図形とは，人の視覚系によって 2 通り以上に解釈される図形である．
+本研究では，画像中に存在する各オブジェクトのラベルが一意に定まるものを一義図形，だまし絵のようにラベルとして複数の解釈が可能なものを多義図形と定義する．
+認知科学の分野では，多義図形の解釈に影響を与える要因は，注視点や選択的注意とされている \cite{points}\cite{attention}.
+%多義図形は一般的な写真などでも偶発的に生じ得るが，人がだまし絵として創作したものが殆どである．そこで以下では多義図形としてだまし絵を対象とする．
+% 
+図 \ref{fig:usagiahiru} に示す兎と鴨の両方に見える多義図形に関して，点 1 を注視しているときは 98 \% 「鴨」と認識される一方，点 5 を注視している時は 94\% 「兎」として解釈されることが報告されている \cite{kawabata}．このような多義図形の解釈について，計算機を用いたアプローチは堀江らによって報告されている \cite{horie2020}．
+%本研究では，人の多義図形認識が注視点の差によるとすれば，人工知能の多義図形の認識の注視点はどうなるかについて検討する．
+
+\subsection{Convolutional Neural Network}
+%画像認識分野において視覚野における受容野の性質に着想を得た深層学習手法として，Convolutional Neural Network (CNN) \cite{shortcnn} が注目されている. 本研究では CNN として, ImageNet \cite{imagenet_cvpr09} と呼ばれる大規模データセットで学習済みの VGG-16 \cite{Simonyan14c} を使用する．
+
+画像認識分野において視覚野における受容野の性質に着想を得た深層学習手法として，Convolutional Neural Network (CNN) \cite{shortcnn} が注目されている. 
+%本研究では CNN として, ImageNet と呼ばれる大規模データセットで学習済みの VGG-16 を使用する．
+CNN の持つ層として，主にフィルタによって画像の局所的な特徴抽出をする Convolution 層, 特徴を統合するPooling 層, 特徴量に基づいた分類をする全結合層がある. 2014 年に発表された VGG-16 は，``ImageNet'' と呼ばれる大規模画像データセットで学習された，Convolution 層 13 層と全結合層 3 層を組合わせた 16 層からなる CNN モデルである．
+
+%\subsubsection{Transfer Learning}
+%Transfer Learning とは, 既存のネットワークモデルの重みデータを一部再学習して他のタスクに転用する，深層学習における学習手法である. 
+%既存の学習済みのネットワークに対して, そのネットワークでは事前には学習されていないクラスを含むデータを与えて学習させることで, 本来の「1000 種類のカテゴリへの分類」の代わりに「犬か猫か」の分類といった異なるタスクが実行可能になる. ゼロからネットワークを学習させる場合と比較して必要な学習コストがはるかに少なくて済み，高い精度が出やすい．
+%
+%\subsubsection{データオーギュメンテーション}
+%データオーギュメンテーション とは，訓練データの画像に対して平行移動，拡大縮小，回転，ノイズの付与などの処理を加えることで，データ数を人為的に水増しする手法である．実際に運用する際の入力画像は，学習データに含まれる画像と異なり，描かれる物体が大きかったり，少し傾いていたりし, アフィン変換による画像のずれに対してもロバストになるというメリットがある．
+%
+%\subsubsection{Optuna}
+%Optuna とはベイズ最適化アルゴリズムの一種を用いて領域推定し，ハイパーパラメータ最適化を自動化するためのソフトウェアフレームワークである．
+%ハイパーパラメータとは機械学習アルゴリズムの挙動を制御するパラメータのことであり，深層学習では勾配法による最適化に適さないパラメータに相当し，学習率やバッチサイズ，ニューラルネットワークの層数などが挙げられる．
+%%深層学習はハイパーパラメータの数が多い傾向があり，その調整が性能を大きく左右する．
+
+\subsection{Grad-CAM}
+Gradient-weighted Class Activation Mapping (Grad-CAM) \cite{Selvaraju_2017_ICCV} とは，CNN が分類のために注視している範囲をカラーマップで表示する CNN の判断根拠の可視化技術である．
+Grad-CAMは, 予測クラスに対する勾配の大きさを寄与の大きさと考え, 分類予測を行う時に重要な箇所であると判断する. 寄与の計算の際には, 一般的に最終畳み込み層の予測クラスの損失値に対する勾配が用いられる．本研究では, 勾配を可視化することで, 多義図形の判断根拠の解析をしている. 
+本研究では Grad-CAM の図としてヒートマップを用いて勾配の大きさを可視化し, 勾配の大きい部分を赤色, 小さい部分を青色とした.
+本研究では, 赤色が最も CNN の最終畳み込み層の勾配が大きい, つまり判断に大きな影響を及ぼしているとし, また, 青色が最も CNN の最終畳み込み層の勾配が小さい, つまり判断にあまり影響を及ぼしていない, となるように可視化した.
+% まず「Global Average Pooling layer (GAP層)」を持つCNNに対して, 機械学習が入力画像が「あるクラスcである」と判断した, その最後の分類スコア $Y^c$ を, GAP 層の特徴量マップ $A_{ij}^{k}$ を使って
+% \begin{equation}
+% 	\label{f1}
+% 	Y^c=\sum_{k}w_{k}^{c}\sum_{i}\sum_{j}A^{k}_{ij}
+% \end{equation}
+% と定義する．(\ref{f1}) 式では，$A^{k}_{ij}$ : $k$ 番目のチャンネルでの位置 $(i, j)$ での活性であることに着目すると，$\sum_{i}\sum_{j}A^{k}_{ij}$ はその全体で割ると「$k$ 番目のチャンネルにおける活性の平均」となることから，ここが GAP 層そのものに相当する．さらに，$Y^{c}$ が加重平均をとっていると捉えることが出来るため，$w_{k}^{c}$ は画像がクラス $c$ であると返すための $\sum_{i}\sum_{j}A^{k}_{ij}$ の重要度であると解釈できる．Grad-CAM では，$Z$ を activation map のピクセル数として，
+% \begin{equation}
+% 	\label{f2}
+% 	w^{c}_{k}=\frac{1}{Z}\sum_{i}\sum_{j}\frac{\partial Y^{c}}{\partial A^{k}_{ij}}
+% \end{equation}
+% と定義する．(\ref{f1}) 式で有限和の順序交換をして，
+% \begin{equation}
+% 	\label{f3}
+% 	Y^c=\sum_{i}\sum_{j}(\sum_{k}w_{k}^{c}A^{k}_{ij})
+% \end{equation}
+% とする．ここで，
+% \begin{equation}
+% 	\label{f4}
+% 	L^{c}_{ij}=\sum_{k}w^{c}_{k}A^{k}_{ij}
+% \end{equation}
+% とすると，(\ref{f4}) 式を用いて(\ref{f3}) 式は
+% \begin{equation}
+% 	\label{f5}
+% 	Y^{c}=\sum_{i}\sum_{j}L^{c}_{ij}
+% \end{equation}
+% と表せる．(\ref{f5}) 式の $L^{c}_{ij}$ が画像中のピクセル位置 $(i, j)$ がその画像がクラス $c$ であると判断された時の重要度であると定義しており，この $L^{c}_{ij}$ のヒートマップで注視点を視覚化する．
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.7\linewidth]{pic/usagiahiru}
+	\caption{兎鴨画像の注視点}
+	\label{fig:usagiahiru}
+\end{figure}
+
+
+
+\section{提案手法}
+\label{sec:proposed}
+\subsection{深層学習の構成}
+本研究では, 既存の深層学習手法を用いて, 多義図形を理解するために必要な問題の枠組みについて提案し, 具体的な実験方法に基づいて数値実験をした.\par
+本研究では，計算機が多義図形を理解するとはどのようなことであるかを示すために，CNNを用いた多義図形を理解する手法および実験の枠組みについて提案する．
+まずデータセットに対して Data Augmentation を施し，ImageNet で学習済みのVGG-16 の最終畳み込み層 3 層以降の Transfer Learning を適用し, Optuna を用いて中間層のユニット数, ドロップアウト率, 学習率の 3 パラメータを調整した．
+表 \ref{tab:optuna} に Optuna によるパラメータ調整区間を示す.
+%パラメータ調整区間は, 中間層のユニット数が100から500、ドロップアウト率が0から1、学習率が0.00001から0.01までとした。
+最後に, CNN による判断根拠を Grad-CAM によって可視化し, 比較した. また, 最終全結合層の Softmax 関数の出力値を入力画像のそのクラスに属するクラスらしさと呼ぶことにする. 
+
+\begin{table}[t]
+	\begin{center}
+		\caption{Optunaによるパラメータ調整区間}
+		\label{tab:optuna}
+		\begin{tabular}{|c|c|} \hline
+			中間層のユニット数&100～500\\ \hline
+			ドロップアウト率&0～1\\ \hline
+			学習率&0.00001～0.01\\ \hline
+		\end{tabular}
+	\end{center}
+\end{table}
+
+\subsection{数値実験の構成}
+%本研究では，以下の実験をした．
+%\begin{itemize}
+%	\item 実験 1 深層学習による多義図形と一義図形の識別に関する実験
+%	%		\item 実験 2 多義図形に対する深層学習と人の認識の関係に関する実験
+%\end{itemize}
+%また, 各実験において, Grad-CAM を用いて計算機による多義図形の注視点に関する解析をした.
+%
+%実験 1 の目的は，多義図形とその多義図形を構成する要素である 2 種類の一義図形を CNN で見分けることが可能かを確かめること, およびその判断根拠を解析することである. 具体的には，以下の実験をした．
+以下に今回の実験について示す.
+\begin{description}
+	\item[実験 1] 風景と人の顔の多義図形, 風景画, 肖像画の3クラスの識別をした. また, テスト画像中の色と特徴点が類似した多義図形, 一義図形を抽出し, その判断根拠を比較した. 
+	\item[実験 2] 実験 1 で作成した風景と人の顔の多義図形, 風景画, 肖像画の 3 クラス識別モデルを用いて, 一義図形の中に含まれる多義図形らしい部分構造を取り出せるか実験した. 今回は, 風景画の中から顔にも風景にも見える箇所を取り出すことが可能か確認した. 
+\end{description}
+
+%実験 2 の目的は, 回転によって描かれているオブジェクトに対する人間の解釈が変化する多義図形の, 回転による認識の変化の境界を調べること, およびその判断根拠を解析することである. 
+%具体的には，以下の実験をした．
+%\begin{description}
+% \item[実験 2-1] 馬と蛙のイラスト画像を学習したモデルを用いて, 90 度回転することで馬/蛙に変化して見える多義図形内の馬と蛙の識別をした. 
+% \item[実験 2-2] 兎と鴨のイラスト画像を学習したモデルを用いて，回転によって徐々に兎/鴨に変化して見える多義図形内の兎と鴨の識別をした．また, 20 歳から 25 歳の大学生・大学院生 16 人に 7 枚の回転によって徐々に兎/鴨に変化して見える多義図形について 15 度ずつ 360 度回転させた画像計 168 枚を見せ，「兎，鴨，どちらでもない」のいずれかを選択してもらうアンケートを取り，「0: 鴨，0.5: どちらでもない，1: 兎」と正規化して平均値を取り, CNN による識別結果と比較した．
+%\item[実験 2-3]  実験 2-2 で判明した人の注視点箇所と計算機の判断根拠箇所の違いを比較するために, テスト画像にマスクをかけることで疑似的に注視状態を作り出す実験をした.\par
+%\end{description}
+
+\subsection{データセット}
+本研究ではインターネットから多義図形として解釈できるだまし絵画像を収集し，データセットを作成した．\par
+実験では, 風景と人の顔をモチーフにした多義図形が多く，また多義図形と似た肖像画や風景画が多く存在することに着目した. そこで, 風景と人の顔の多義図形については，著者が風景と人の顔であると判断した画像を集めて作成したデータセットを 「多義図形」クラスとした. 「多義図形」クラスの訓練データのみ, 257 枚を 10 倍に Data Augmentation し, 2570 枚にして使用した. また, 一義図形のデータセットとして, WikiArt \cite{wikiart} 中の ``landscape'', ``cityscape'' ラベルの画像を「風景画」クラス, ``portrait" ラベルの画像を「肖像画」クラスとして用いた．\par
+%	実験 2 では，回転によってオブジェクトの見え方が変化する多義図形に着目した. 描かれているオブジェクト数が一つであるため注視点の解析がしやすいと予想される上，回転による計算機の注視点の推移を見ることが容易なためである. \par
+%	実験 2-1 では, 訓練/評価用のデータセットとして，Pinterest \cite{pinterest} の ``horse illustration", ``frog illustration" の検索結果をスクレイピングし，馬, 蛙とラベル付けしたものを用いた．また, テスト用のデータセットとして, 図 \ref{fig:froggradcamresult} および \ref{fig:horsegradcamresult} の上段に示されるような, 90 度回転することで馬/蛙に変化して見える多義図形 7 枚を用いた. \par
+%	実験 2-2 では, 訓練/評価用のデータセットとして，Pinterest の ``rabbit illustration", ``duck illustration" の検索結果をスクレイピングし，兎, 鴨とラベル付けしたものを用いた．また, テスト用のデータセットとして, 図 \ref{fig:11gradcamresult}, 図 \ref{fig:00gradcamresult} に示されるような, 回転によって徐々に兎/鴨に変化して見える多義図形 7 枚を用いた. \par
+
+
+\section{数値実験}
+\label{sec:exp}
+\subsection{実験　1}
+\subsubsection{実験条件}
+表 \ref{tab:facelandmark} に実験条件を，表 \ref{tab:facelandmarkOptuna} に Optuna によるネットワークパラメータの最適化結果を示す．
+\begin{table}[t]
+	%\begin{minipage}[t]{.5\textwidth}
+	\begin{center}
+		\caption{実験 1 実験条件}
+		\label{tab:facelandmark}
+		\begin{tabular}{|c|c|} \hline
+			%モデル&VGG-16\\ \hline
+			クラス&3クラス(多義図形, 風景画, 肖像画)\\ \hline
+			エポック&22\\ \hline
+			バッチサイズ&32\\ \hline
+			訓練枚数&2570 枚/クラス\\ \hline
+			評価枚数&36 枚/クラス\\ \hline
+			テスト枚数&72 枚/クラス\\ \hline
+			データサイズ&200×200×3(RGB)\\ \hline
+			活性化関数&Softmax\\ \hline
+			最適化関数&Adam\\ \hline
+			損失関数&交差エントロピー\\ \hline
+		\end{tabular}
+	\end{center}
+\end{table}
+\begin{table}[t]
+	%\end{minipage}
+	%\begin{minipage}[t]{.5\textwidth}
+	\begin{center}
+		\caption{実験 1  Optuna による最適化結果}
+		\label{tab:facelandmarkOptuna}
+		\begin{tabular}{|c|c|} \hline
+			ドロップアウト率& 0.67640\\ \hline
+			学習率&2.2686e-05\\ \hline
+			中間層のユニット数&100\\ \hline
+		\end{tabular}
+	\end{center}
+	%\end{minipage}
+\end{table}
+
+\subsubsection{実験結果}
+CNN による風景と人の顔の多義図形, 風景画, 肖像画の 3 クラス識別の精度はベースライン 33.3\% に対して, 91.2\% となった. 図 \ref{tab:heatmap} に縦軸を真値，横軸をCNNによる予測値とした混同行列を示す．
+%結果として，多義図形はすべて多義図形として識別することに成功した．これは, 顔と風景の多義図形にはパターンがあり, それらのパターンを全て学習できたからではないかと考えられる. 
+また図 \ref{fig:facelandgradcam} に Grad-CAM による計算機の判断根拠結果を示す. Grad-CAM の結果より，風景画については全体に満遍なく判断根拠があり，肖像画については人の顔の領域に判断根拠があることがわかった．多義図形についても肖像画と同様に，人の顔の領域に判断根拠が集まっていることが確認できた．
+%\begin{figure}
+%	\centering
+%	\includegraphics[width=0.8\linewidth]{pic/heatmap}
+%	\caption{実験 1-1 混同行列}
+%	\label{fig:heatmap}
+%\end{figure}
+\begin{table}[t]
+	\begin{center}
+		\caption{実験 1 混同行列}
+		\label{tab:heatmap}
+		\begin{tabular}{|c|c|c|c|c|} \hline
+			&多義図形&60&5&7\\ \cline{2-5}
+			真値&肖像画&1&67&4\\ \cline{2-5}
+			&風景画&0&2&70\\ \hline
+			\multicolumn{2}{|c|}{}&多義図形&肖像画&風景画\\ \cline{3-5}
+			\multicolumn{2}{|c|}{}&\multicolumn{3}{|c|}{CNNによる予測値}\\ \hline
+		\end{tabular}
+	\end{center}
+\end{table}
+
+\begin{figure*}[t]
+	\begin{center}
+		\begin{tabular}{c}
+			% 1
+			\begin{minipage}{0.5\hsize}
+				\begin{center}
+					\includegraphics[width=1\linewidth]{pic/landscape.jpg}
+				\end{center}
+			\end{minipage}
+			% 2
+			\begin{minipage}{0.5\hsize}
+				\begin{center}					
+					\includegraphics[width=1\linewidth]{pic/portrait.jpg}
+				\end{center}
+			\end{minipage}			
+			% 3
+			\\
+			\begin{minipage}{0.5\hsize}
+				\begin{center}
+					\includegraphics[width=1\linewidth]{pic/doubleimage.jpg}	
+				\end{center}
+			\end{minipage}
+		\end{tabular}
+	\end{center}
+	\caption{実験 1 Grad-CAM の結果の例}
+	\label{fig:facelandgradcam}
+\end{figure*}
+
+
+%\subsubsection{考察}
+%	この実験の結果何がわかったか？
+%	多義図形と一義図形
+%	一義図形から多義図形を取り出すことに成功した
+%	単なる顔の抽出では得られない, 曖昧さを持った顔画像の抽出に成功しているので, 多義図形の特徴の学習に成功している. 
+%	考察最後にまとめて書く
+%考察のため, 2 つの実験を追加でした. 
+%2 つ目は, 実験 1-1 で作成した 3 クラス識別モデルを使用して, 一義図形から多義図形らしい箇所を切り取れるか確認した. これは将来的に考えている多義図形の生成タスクへの応用の前段階として実験した.\par
+%3 クラス識別モデルが類似した一義図形と多義図形を見分けることが出来るのかを確認した. 	
+また, 実験 1 で作成した 3 クラス識別モデルが類似した多義図形と一義図形を見分けることが可能かを確認した. 
+色, 特徴点共に似た「多義図形」クラスの画像と「肖像画」クラスの画像, 「多義図形」クラスの画像と「風景画」クラスの画像の対をテスト画像から抽出した. ここで, 色, 特徴点共に似ているというのは, ヒストグラム類似度が 0.9 以下かつ AKAZE 類似度が 120 以上の画像の組と定義する. 図 \ref{fig:ruiji} に類似画像の組と, 「多義図形」クラス, 「肖像画」クラス/「風景画」クラスの判断根拠を示す. この図より, 類似画像においても, 多義図形と一義図形との判断根拠は全く違っている.
+%, 正確に識別できていることがわかる. つまり, 本実験において, 「多義図形らしさ」を学習・識別することに成功したといえる.
+\begin{figure*}
+	\centering
+	\includegraphics[width=0.6\linewidth]{pic/ruiji}
+	\caption{実験1 類似画像の識別}
+	\label{fig:ruiji}
+\end{figure*}
+
+\subsection{実験 2}
+\subsubsection{実験条件}
+入力画像を5×5個の格子に分割し, 1×1, 2×2, 3×3, 4×4 格子の全通りの選び方 (54 通り) で切り取り, 切り取った画像を全て学習済みの 3 クラス識別器を使ってテストした. 本実験では, 「風景画」クラスの画像を上記の方法で切り出して「肖像画」クラスと識別された画像, 「多義図形」クラスと識別された画像について詳しく見る.
+
+\subsubsection{実験結果}
+図 \ref{fig:portraitfromlandscape} に「風景画」クラスの画像を切り出して「肖像画」クラスと識別された画像の例, 図 \ref{fig:doubleimagefromlandscape} に「風景画」クラスの画像を切り出して「多義図形」クラスと識別された画像の例を示す. WikiArt 中の ``landscape'', ``cityscape'' ラベルの画像 17960 枚の風景画画像を 54 通りに切り分けると 969840 枚となり, その内「多義図形」クラスとして識別された部分画像は 26990 枚 (2.78\%) だった. 
+図 \ref{fig:portraitfromlandscape} より, 肖像画と識別された画像には, 風景画の中に描かれている人の顔領域が映り込んでいることがわかる. 一方, 図 \ref{fig:doubleimagefromlandscape} より, 多義図形
+と識別された画像には, 風景にも顔にも見える部分が映り込んでいることがわかる. このことから, 風景画の中から「風景に映り込んだ人の顔」と「風景にも顔にも見える多義図形」を分けて切り出すことができたと考えられる. 
+
+\begin{figure}
+	\begin{center}
+		\begin{tabular}{c}
+			\begin{minipage}{1\hsize}
+				\centering
+				\includegraphics[width=1\linewidth]{pic/portrait_from_landscape}
+				\caption{実験2 風景画を切り出して肖像画と識別された部分画像例}
+				\label{fig:portraitfromlandscape}
+			\end{minipage}
+		\\
+			\begin{minipage}{1\hsize}
+				\centering
+				\includegraphics[width=1\linewidth]{pic/doubleimage_from_landscape}
+				\caption{実験2 風景画を切り出して多義図形と識別された部分画像例}
+				\label{fig:doubleimagefromlandscape}
+			\end{minipage}
+		\end{tabular}
+	\end{center}
+\end{figure}
+
+
+%	\subsection{実験2-1}
+%	\subsubsection{実験条件}
+%%	多義図形は回転によって明示的に対象が遷移するものがある. 回転によってオブジェクトの遷移が生じるという人の認知を深層学習により再現することが出来た. 
+%	表 \ref{tab:umakaeru} に実験条件を，表 \ref{tab:umakaeruOptuna} に Optuna によるネットワークパラメータの最適化結果を示す．\par
+%	% 様々なタッチと角度のイラスト画像が含まれるため，写真画像のように明確に対象物が識別できない多義図形への認識精度を上げることを期待した．
+%	\begin{table}[t]
+%		\begin{minipage}[t]{.5\textwidth}
+%			\begin{center}
+%				\caption{実験 2-1, 2-2 実験条件}
+%				\label{tab:umakaeru}
+%				\begin{tabular}{|c|c|} \hline
+%					%モデル&VGG-16\\ \hline
+%					クラス&2 クラス\\ \hline
+%					エポック&300\\ \hline
+%					バッチサイズ&32\\ \hline
+%					訓練枚数&800 枚/クラス\\ \hline
+%					評価枚数&100 枚/クラス\\ \hline
+%					テスト枚数&100 枚/クラス\\ \hline
+%					データサイズ&200×200×3(RGB)\\ \hline
+%					活性化関数&Softmax\\ \hline
+%					最適化関数&Adam\\ \hline
+%					損失関数&交差エントロピー\\ \hline
+%				\end{tabular}
+%			\end{center}
+%		\end{minipage} \\ \\
+%		%\end{table}
+%		%\begin{table}[t]
+%		\begin{minipage}[t]{.5\textwidth}
+%			\begin{center}
+%				\caption{実験 2-1 Optuna による最適化結果(馬/蛙)}
+%				\label{tab:umakaeruOptuna}
+%				\begin{tabular}{|c|c|} \hline
+%					中間層のユニット数 & 100 \\ \hline
+%					ドロップアウト率 & 0.042160 \\ \hline
+%					学習率 & 1.8731e-05 \\ \hline
+%				\end{tabular}
+%			\end{center}
+%		\end{minipage}\\ \\
+%		%\end{table}
+%		%\begin{table}[t]
+%		\begin{minipage}[t]{.5\textwidth}
+%			\begin{center}
+%				\caption{実験 2-2 Optuna による最適化結果(兎/鴨)}
+%				\label{tab:usagiahiruOptuna}
+%				\begin{tabular}{|c|c|} \hline
+%					中間層のユニット数 & 500 \\ \hline
+%					ドロップアウト率 & 0.30511 \\ \hline
+%					学習率 & 5.0936e-05 \\ \hline
+%				\end{tabular}
+%			\end{center}
+%		\end{minipage}
+%	\end{table}
+%	\subsubsection{実験結果}	
+%	図 \ref{fig:horsegradcamresult} に馬優位画像の Grad-CAM による計算機の判断根拠結果, 図 \ref{fig:froggradcamresult} に蛙優位画像の Grad-CAM による計算機の判断根拠結果の例を示す．Grad-CAM の結果より，馬優位画像では馬の耳やたてがみ部分を注視し, 蛙優位画像では蛙の足部分と水面との境目を注視していた．
+%	%これら画像は同じ画像を単に反時計回りに90度回転させただけであるのに，注視点が全く違うところに分布している．
+%	90 度回転することで馬/蛙に変化して見える多義図形については，97\% 以上の精度で回転に伴うオブジェクトの認識の変化を計算機に認識させることに成功した．
+%	\begin{figure*}
+%		\begin{center}
+%			\begin{tabular}{c}
+%				\begin{minipage}{0.5\hsize}
+%					\centering
+%					\includegraphics[width=1\linewidth]{pic/horse_gradcam_result}
+%					\caption{実験 2-1 馬優位画像の Grad-CAM の結果}
+%					\label{fig:horsegradcamresult}
+%				\end{minipage}
+%				\begin{minipage}{0.5\hsize}
+%					\centering
+%					\includegraphics[width=1\linewidth]{pic/frog_gradcam_result.jpg}
+%					\caption{実験 2-1 蛙優位画像の Grad-CAM の結果}
+%					\label{fig:froggradcamresult}
+%				\end{minipage}
+%			\end{tabular}
+%		\end{center}
+%	\end{figure*}
+%
+%	
+%	\subsection{実験2-2}
+%	\subsubsection{実験条件}
+%	実験条件については表 \ref{tab:umakaeru} に示した実験 2-1 におけるものと同一である．また表 \ref{tab:usagiahiruOptuna} に Optuna によるネットワークパラメータの最適化結果を示す．\par
+%	\subsubsection{実験結果}
+%	図 \ref{fig:rabbitscatter} に縦軸を人へのアンケート結果，横軸を CNN による認識結果とした散布図を示す．人へのアンケート結果と計算機による認識結果の相関係数は 0.772 であった. このため, 多義図形に対する人による認識結果と計算機による認識には強い相関があることがわかる．\par
+%	図 \ref{fig:11gradcamresult} に兎優位画像の Grad-CAM による計算機の判断根拠結果，図 \ref{fig:00gradcamresult} に鴨優位画像の Grad-CAM による計算機の判断根拠結果の例を示す．Grad-CAM の結果より，兎優位画像の注視点は耳の付け根あたりに集中していること，鴨優位画像の注視点は目～胴に注視点が集中していることがわかった．
+%	人の注視点に関する先行研究 \cite{kawabata} より, 図 \ref{fig:usagiahiru} に示す鴨と兎の両方に見える多義図形に関して，点 1 を注視しているときは「鴨」と認識される一方，点 5 を注視している時は「兎」として認識されることが報告されている \cite{kawabata}．一方, 計算機による Grad-CAM 結果をまとめると, 点 4 を注視している時は「鴨」と認識する一方, 点 2 を注視している時は「兎」と認識する.
+%	計算機による Grad-CAM の結果と人に対する先行研究 \cite{kawabata} の比較より，人の注視点と計算機の判断根拠は異なるという興味深い結果を得た．
+%	\begin{figure}[t]
+%		\begin{center}					
+%			\includegraphics[width=0.7\linewidth]{pic/rabbit_scatter.png}
+%			\caption{実験 2-2 人と CNN の識別結果の散布図}
+%			\label{fig:rabbitscatter}
+%		\end{center}
+%	\end{figure}
+%	\begin{figure*}
+%		\begin{center}
+%			\begin{tabular}{c}
+%				% 1
+%				\begin{minipage}{0.5\hsize}
+%					\begin{center}
+%						\includegraphics[width=1\linewidth]{pic/1_1_gradcam_result}
+%						\caption{実験 2-2 兎優位画像の Grad-CAM の結果}
+%						\label{fig:11gradcamresult}
+%					\end{center}
+%				\end{minipage}
+%				% 2
+%				\begin{minipage}{0.5\hsize}
+%					\begin{center}					
+%						\includegraphics[width=1\linewidth]{pic/0_0_gradcam_result}
+%						\caption{実験 2-2 鴨優位画像の Grad-CAM の結果}
+%						\label{fig:00gradcamresult}
+%					\end{center}
+%				\end{minipage}			
+%			\end{tabular}
+%		\end{center}
+%	\end{figure*}	
+%	
+%	
+%	\subsection{実験 2-3}
+%	\subsubsection{人と計算機の視覚の違い}
+%	\label{sec:human_cnn}
+%		人と計算機の違いについて考察する．一つ目の違いとして，人の注視点の周囲は徐々にぼやけて見える一方，計算機については画面全体について見え方が均一であることが挙げられる．よって，Grad-CAM によるヒートマップをマスクとして画像に適用することで, 人に近い状態を設定できるのではないかと考えた．二つ目の違いとして，人は同じ画像を見ても注視点推移により違うオブジェクトが描かれているように見える一方，計算機は同じ画像の捉え方は一通りしかないことが挙げられる．よって，マスクのかけ方で計算機によるテスト結果が変われば人らしいと考えることができる．\par
+%	\subsubsection{実験方法}
+%		\ref{sec:human_cnn} 項を踏まえて, 実験 2-3 をした. 図 \ref{fig:mask} に実験 2-3 について図解する．まずは，実験 2-2 で作成した兎と鴨の学習済み 2 クラス識別モデルを用意し, テスト結果の兎らしさ, 鴨らしさが 0.4-0.6 である, つまり兎らしくも鴨らしくもある画像を抽出した．次に，抽出した画像の鴨の判断根拠となる Grad-CAM の CAM 値および兎の判断根拠の Grad-CAM の CAM 値と元画像の各ピクセルの値をそれぞれ掛け合わせる．この操作によって，鴨の CNN の判断根拠領域以外にマスクがかかった状態の画像，兎の CNN の判断根拠領域以外にマスクがかかった状態の画像を作成し, これらの画像および加工前の画像のテスト結果を比較した．
+%	\begin{figure*}[t]
+%		\centering
+%		\includegraphics[width=0.65\linewidth]{pic/mask}
+%		\caption{マスク解析実験}
+%		\label{fig:mask}
+%	\end{figure*}
+%	\subsubsection{実験結果}
+%		兎らしくも鴨らしくもある画像は, 右向き・左向きそれぞれ 7 枚の回転によって徐々に兎/鴨に変化して見える多義図形を5度ずつ回転させた 1008 枚中 25 枚であった. また, 25 枚の中でマスクによる兎から鴨への識別の変化があったのは 17 枚であった．約 68 \% の画像で識別の変化が見られた. このことから，Grad-CAM によって可視化される CNN の判断根拠領域に基づいてマスクをかけた結果, 人間の注視状態に近づいたと考察できる.
+
+%実験 2-2 で判明した人の注視点箇所と計算機の判断根拠箇所の違いを比較するために, テスト 画像にマスクをかけることで疑似的に注視点状態を作り出す実験をした.
+%	実験 2-3 で判明した人の注視点箇所と計算機の判断根拠箇所の相違について考察するため，人の注視状態に近い状況を作り出すことで CNN と人の多義図形の注視点を比較する．\par
+
+
+
+
+
+
+
+%	予備実験として. マスクの意味を逆にして, 注視点の部分を隠した場合は識別率が大きく落ちるという意味で人との類似性が見られた. 
+%	回転の度数も書く. (オーギュメンテーション手法も書く. )
+
+
+\section{まとめと今後の課題}
+\label{sec:conclusion}
+本研究ではだまし絵に代表される多義図形を計算機に理解させるための手法を提案し，複数の数値実験を通じてその有効性および人間の認知との関係を示した．
+実験 1 では，計算機に多義図形と多義図形を構成する 2 要素の一義図形とを 91.2 \% の精度で識別させることに成功した．そして, Grad-CAM を用いた解析により，計算機による肖像画と多義図形の注視点における類似性を確認した．また, 類似した多義図形と一義図形においても, それらを識別することができた. 実験 1-2 では, 風景画より, 風景にも顔にも見える多義図形を切り出すことができた.\par
+%	実験 2-1 では，90 度回転することで馬/蛙に変化して見える多義図形について，97\% 以上の精度で計算機に認識させることに成功した．実験 2-2 では，回転によって徐々に兎/鴨に変化して見える多義図形についてアンケート調査を実施した結果，人による認識と計算機による認識の相関係数が 0.772 と非常に強い相関を示した．また実験 2-2 では，Grad-CAM による解析の結果，兎らしさや鴨らしさを認識する際に計算機と人が注視する点は異なることがわかった．実験 2-3 では, 兎/鴨それぞれの Grad-CAM による判断根拠に準じてマスクをかけてテストした結果, 68\% の画像で認識対象の変化が見られたことから, Grad-CAM による CNN の判断根拠の可視化は, 人の注視状態と近いことが考察された.\par
+今後の課題としては, 画像の見せ方や周囲の環境に配慮したアンケート実験，アイトラッキング技術の活用, 計算機によるだまし絵の自動生成などが挙げられる．\par
+いまだその多くが解明されていない脳神経系の機構に迫ることから工学分野への応用まで, 錯視研究が担う領域は実に幅広いと言われる．人は無意識が 8 割ほどで行動を行っているとされるが，この無意識を再現することは非常に難しいため，AI による学習をさせることも困難であるとされている．
+本研究を進めることにより，脳のまだ解明されていない機能の理解への一歩となることを期待している．
+なお，本研究は一部，日本学術振興会科学研究補助金基盤研究(B) (課題番号 19H04184) の補助を得て行われたものである．
+
+
+% \section{参考文献}
+
+\bibliographystyle{junsrt}
+\bibliography{cite}
+
+\end{document}
+​
